@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mock Interview Platform</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+
+        <header class="dashboard-header">
+            <div class="brand">
+                <div class="brand-icon">AI</div>
+                <div>
+                    <strong>InterviewPrep</strong>
+                    <span>Mock Interview Platform</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" id="historyButton">Interview History</button>
+                <button type="button" id="logoutButton" hidden>Logout</button>
+            </div>
+        </header>
+
+        <section id="loginSection" class="auth-card">
+            <h1>Welcome Back</h1>
+            <p>Log in to continue preparing for your interviews.</p>
+
+            <form id="loginForm">
+                <label for="email">Email</label>
+                <input type="email" id="email"
+                       placeholder="Enter your registered email" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password"
+                       placeholder="Enter your password" required>
+
+                <button type="submit" id="loginButton">Login</button>
+            </form>
+
+            <p class="register-prompt">
+                Don't have an account?
+                <button type="button" id="showRegisterButton">Create account</button>
+            </p>
+        </section>
+
+        <section id="registerSection" class="auth-card" hidden>
+            <h1>Create Your Account</h1>
+            <p>Start practicing and track your interview progress.</p>
+
+            <form id="registerForm">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail"
+                       placeholder="Enter your email" required>
+
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword"
+                       placeholder="Create a password" required>
+
+                <button type="submit" id="registerButton">Register</button>
+            </form>
+
+            <p class="register-prompt">
+                Already have an account?
+                <button type="button" id="showLoginButton">Back to Login</button>
+            </p>
+        </section>
+
+        <section id="setupSection" hidden>
+            <div class="welcome-card">
+                <div>
+                    <p class="eyebrow">YOUR PRACTICE SPACE</p>
+                    <h1>Ready to sharpen your skills?</h1>
+                    <p>Choose your role and topic to begin a personalized mock interview.</p>
+                </div>
+                <div class="welcome-illustration">✦</div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="main-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">GET STARTED</p>
+                            <h2>Set Up Your Interview</h2>
+                        </div>
+                    </div>
+
+                    <form id="interviewForm">
+                        <label for="role">Job Role</label>
+                        <input type="text" id="role" name="role"
+                               placeholder="e.g. Python Developer" required>
+
+                        <label for="experienceLevel">Experience Level</label>
+                        <select id="experienceLevel" name="experience_level" required>
+                            <option value="">Select your level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+
+                        <label for="topic">Interview Topic</label>
+                        <select id="topic" name="topic" required>
+                            <option value="">Select a topic</option>
+                            <option value="python">Python</option>
+                            <option value="sql">SQL</option>
+                            <option value="general">General Interview</option>
+                        </select>
+
+                        <button type="submit" id="startButton">
+                            Start Your Interview
+                        </button>
+                    </form>
+                </div>
+
+                <aside class="side-panel">
+                    <div class="side-panel-icon">✓</div>
+                    <h3>Practice with purpose</h3>
+                    <p>Answer interview questions, receive scores and feedback, and review your previous attempts.</p>
+                    <div class="feature-row">
+                        <span>01</span>
+                        <p>Practice questions</p>
+                    </div>
+                    <div class="feature-row">
+                        <span>02</span>
+                        <p>Answer evaluation</p>
+                    </div>
+                    <div class="feature-row">
+                        <span>03</span>
+                        <p>Interview history</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="questionsSection" hidden>
+            <div id="questionsContainer"></div>
+            <button type="button" id="newInterviewButton">New Interview</button>
+        </section>
+
+        <section id="historySection" hidden>
+    <div id="historyContainer"></div>
+</section>
+
+        <p id="message" role="status"></p>
+    </main>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
