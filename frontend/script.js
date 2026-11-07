@@ -16,6 +16,9 @@ const historyButton = document.getElementById("historyButton");
 const logoutButton = document.getElementById("logoutButton");
 const newInterviewButton = document.getElementById("newInterviewButton");
 
+let performanceChart = null;
+let topicChart = null;
+
 // Switch to Registration
 document.getElementById("showRegisterButton").addEventListener("click", () => {
     loginSection.hidden = true;
@@ -283,7 +286,8 @@ interviewForm.addEventListener("submit", async (event) => {
     }
 });
 
-// Load and display interview history
+
+// Load and display interview history with analytics
 historyButton.addEventListener("click", async () => {
     const token = localStorage.getItem("access_token");
 
@@ -292,7 +296,6 @@ historyButton.addEventListener("click", async () => {
         return;
     }
 
-    // Show history only after the user clicks the history button
     loginSection.hidden = true;
     registerSection.hidden = true;
     setupSection.hidden = true;
@@ -319,37 +322,277 @@ historyButton.addEventListener("click", async () => {
             );
         }
 
-        if (interviews.length === 0) {
-            historyContainer.innerHTML = "<p>No previous interviews found.</p>";
-            return;
+        // Collect only evaluated answers with valid numeric scores
+        const scoredAnswers = interviews.flatMap(interview =>
+            (interview.answers || [])
+                .filter(answer =>
+                    answer.score !== null &&
+                    answer.score !== undefined &&
+                    Number.isFinite(Number(answer.score))
+                )
+                .map(answer => ({
+                    ...answer,
+                    topic: interview.topic || "Other"
+                }))
+        );
+
+        const scores = scoredAnswers.map(answer => Number(answer.score));
+
+        const averageScore = scores.length
+            ? scores.reduce((sum, score) => sum + score, 0) / scores.length
+            : 0;
+
+        const highestScore = scores.length
+            ? Math.max(...scores)
+            : 0;
+
+        // Calculate average score for each interview
+        const interviewAverages = interviews.map(interview => {
+            const interviewScores = (interview.answers || [])
+                .filter(answer =>
+                    answer.score !== null &&
+                    answer.score !== undefined &&
+                    Number.isFinite(Number(answer.score))
+                )
+                .map(answer => Number(answer.score));
+
+            const average = interviewScores.length
+                ? interviewScores.reduce((sum, score) => sum + score, 0)
+                    / interviewScores.length
+                : null;
+
+            return {
+                label: `${interview.role} (${new Date(interview.created_at).toLocaleDateString()})`,
+                average
+            };
+        }).filter(item => item.average !== null).reverse();
+
+        // Calculate average score topic-wise
+        const topicScores = {};
+
+        scoredAnswers.forEach(answer => {
+            if (!topicScores[answer.topic]) {
+                topicScores[answer.topic] = [];
+            }
+
+            topicScores[answer.topic].push(Number(answer.score));
+        });
+
+        const topicLabels = Object.keys(topicScores);
+
+        const topicAverages = topicLabels.map(topic => {
+            const values = topicScores[topic];
+
+            return values.reduce((sum, score) => sum + score, 0)
+                / values.length;
+        });
+
+        // Display analytics and interview history
+        historyContainer.innerHTML = `
+            <div class="analytics-heading">
+                <p class="eyebrow">YOUR PERFORMANCE</p>
+                <h2>Interview Analytics</h2>
+                <p>Track your practice activity and monitor your progress.</p>
+            </div>
+
+            <div class="analytics-summary">
+                <div class="analytics-card">
+                    <p>Total Interviews</p>
+                    <h3>${interviews.length}</h3>
+                </div>
+
+                <div class="analytics-card">
+                    <p>Average Score</p>
+                    <h3>${scores.length ? averageScore.toFixed(1) : "—"}</h3>
+                </div>
+
+                <div class="analytics-card">
+                    <p>Highest Score</p>
+                    <h3>${scores.length ? highestScore : "—"}</h3>
+                </div>
+            </div>
+
+            <div class="analytics-charts">
+                <div class="chart-card">
+                    <h3>Interview Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    ${interviewAverages.length === 0
+                        ? "<p>No evaluated interviews available for the chart yet.</p>"
+                        : ""}
+                </div>
+
+                <div class="chart-card">
+                    <h3>Topic-wise Score Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="topicChart"></canvas>
+                    </div>
+                    ${topicLabels.length === 0
+                        ? "<p>No topic scores available yet.</p>"
+                        : ""}
+                </div>
+            </div>
+
+            <h2>Interview History</h2>
+            ${interviews.length === 0
+    ? "<p>No previous interviews found. Start your first interview!</p>"
+    : interviews.map((interview, index) => `
+        <div class="history-card">
+            <h3>${interview.role} — ${interview.topic}</h3>
+
+            <p><strong>Experience:</strong>
+                ${interview.experience_level}
+            </p>
+
+            <p><strong>Date:</strong>
+                ${new Date(interview.created_at).toLocaleString()}
+            </p>
+
+            <p><strong>Answers Submitted:</strong>
+                ${(interview.answers || []).length}
+            </p>
+
+            ${(interview.answers || []).length > 0
+                ? `
+                    <button
+                        type="button"
+                        class="view-answers-button"
+                        data-interview-index="${index}"
+                        aria-expanded="false"
+                    >
+                        View Interview Answers
+                    </button>
+
+                    <div
+                        class="interview-answers"
+                        id="interview-answers-${index}"
+                        hidden
+                    >
+                        ${interview.answers.map((answer, answerIndex) => `
+                            <div class="history-answer">
+                                <h4>Question ${answerIndex + 1}</h4>
+
+                                <p><strong>Question:</strong>
+                                    ${answer.question}
+                                </p>
+
+                                <p><strong>Your answer:</strong>
+                                    ${answer.answer}
+                                </p>
+
+                                <p><strong>Score:</strong>
+                                    ${answer.score ?? "Not evaluated"}
+                                </p>
+
+                                <p><strong>Feedback:</strong>
+                                    ${answer.feedback ?? "Not available"}
+                                </p>
+                            </div>
+                        `).join("")}
+                    </div>
+                `
+                : "<p>No answers submitted for this interview.</p>"
+            }
+        </div>
+    `).join("")
+}
+        `;
+
+        // Show or hide answers for individual interviews
+document.querySelectorAll(".view-answers-button").forEach(button => {
+    button.addEventListener("click", () => {
+        const index = button.dataset.interviewIndex;
+        const answersContainer = document.getElementById(
+            `interview-answers-${index}`
+        );
+
+        const isHidden = answersContainer.hidden;
+
+        answersContainer.hidden = !isHidden;
+        button.setAttribute("aria-expanded", String(isHidden));
+
+        button.textContent = isHidden
+            ? "Hide Interview Answers"
+            : "View Interview Answers";
+    });
+});
+
+        // Remove old charts before creating new ones
+        if (performanceChart) {
+            performanceChart.destroy();
+            performanceChart = null;
         }
 
-        historyContainer.innerHTML = `
-            <h2>Interview History</h2>
-            ${interviews.map(interview => `
-                <div class="history-card">
-                    <h3>${interview.role} — ${interview.topic}</h3>
-                    <p><strong>Experience:</strong> ${interview.experience_level}</p>
-                    <p><strong>Date:</strong> ${new Date(interview.created_at).toLocaleString()}</p>
+        if (topicChart) {
+            topicChart.destroy();
+            topicChart = null;
+        }
 
-                    ${interview.answers.length > 0
-                        ? interview.answers.map(answer => `
-                            <div class="history-answer">
-                                <p><strong>Question:</strong> ${answer.question}</p>
-                                <p><strong>Your answer:</strong> ${answer.answer}</p>
-                                <p><strong>Score:</strong> ${answer.score ?? "Not evaluated"}</p>
-                                <p><strong>Feedback:</strong> ${answer.feedback ?? "Not available"}</p>
-                            </div>
-                        `).join("")
-                        : "<p>No answers submitted for this interview.</p>"
+        // Create interview performance line chart
+        if (typeof Chart !== "undefined" && interviewAverages.length > 0) {
+            performanceChart = new Chart(
+                document.getElementById("performanceChart"),
+                {
+                    type: "line",
+                    data: {
+                        labels: interviewAverages.map(item => item.label),
+                        datasets: [{
+                            label: "Average Score",
+                            data: interviewAverages.map(item => item.average),
+                            borderColor: "#6d4aff",
+                            backgroundColor: "rgba(109, 74, 255, 0.12)",
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
-                </div>
-            `).join("")}
-        `;
+                }
+            );
+        }
+
+        // Create topic-wise bar chart
+        if (typeof Chart !== "undefined" && topicLabels.length > 0) {
+            topicChart = new Chart(
+                document.getElementById("topicChart"),
+                {
+                    type: "bar",
+                    data: {
+                        labels: topicLabels,
+                        datasets: [{
+                            label: "Average Score",
+                            data: topicAverages,
+                            backgroundColor: "#8a70f5",
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
     } catch (error) {
         historyContainer.textContent = error.message;
     }
 });
+
 
 // Logout user
 logoutButton.addEventListener("click", () => {

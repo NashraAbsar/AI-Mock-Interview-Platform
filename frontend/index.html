@@ -90,9 +90,18 @@
 
                     <form id="interviewForm">
                         <label for="role">Job Role</label>
-                        <input type="text" id="role" name="role"
-                               placeholder="e.g. Python Developer" required>
-
+<select id="role" name="role" required>
+    <option value="">Select Job Role</option>
+    <option value="Python Developer">Python Developer</option>
+    <option value="Backend Developer">Backend Developer</option>
+    <option value="Software Developer">Software Developer</option>
+    <option value="Frontend Developer">Frontend Developer</option>
+    <option value="Full Stack Developer">Full Stack Developer</option>
+    <option value="Data Analyst">Data Analyst</option>
+    <option value="Data Scientist">Data Scientist</option>
+    <option value="AI/ML Engineer">AI/ML Engineer</option>
+    <option value="Java Developer">Java Developer</option>
+</select>
                         <label for="experienceLevel">Experience Level</label>
                         <select id="experienceLevel" name="experience_level" required>
                             <option value="">Select your level</option>
@@ -101,13 +110,26 @@
                             <option value="Advanced">Advanced</option>
                         </select>
 
-                        <label for="topic">Interview Topic</label>
-                        <select id="topic" name="topic" required>
-                            <option value="">Select a topic</option>
-                            <option value="python">Python</option>
-                            <option value="sql">SQL</option>
-                            <option value="general">General Interview</option>
-                        </select>
+                         <label for="topic">Interview Topic</label>
+<select id="topic" name="topic" required>
+    <option value="">Select a topic</option>
+    <option value="python">Python</option>
+    <option value="sql">SQL</option>
+    <option value="dsa">Data Structures and Algorithms</option>
+    <option value="oops">Object-Oriented Programming</option>
+    <option value="dbms">DBMS</option>
+    <option value="operating systems">Operating Systems</option>
+    <option value="computer networks">Computer Networks</option>
+    <option value="html css">HTML and CSS</option>
+    <option value="javascript">JavaScript</option>
+    <option value="react">React</option>
+    <option value="fastapi">FastAPI</option>
+    <option value="django">Django</option>
+    <option value="machine learning">Machine Learning</option>
+    <option value="generative ai">Generative AI</option>
+    <option value="system design">System Design</option>
+    <option value="general">General Interview</option>
+</select>
 
                         <button type="submit" id="startButton">
                             Start Your Interview
@@ -146,7 +168,7 @@
 
         <p id="message" role="status"></p>
     </main>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/script.js"></script>
 </body>
 </html>
