@@ -210,8 +210,12 @@ def get_interview_questions(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Interview session not found",
         )
-
-    questions = get_questions(session.topic)
+    questions = get_questions(
+    topic=session.topic,
+    role=session.role,
+    experience_level=session.experience_level,
+    count=5
+)
 
     return {
         "session_id": session.id,
